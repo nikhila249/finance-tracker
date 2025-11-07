@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spendy | Rewards & Offers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --cosmic-bg: #0a0a0f; --cosmic-surface: rgba(26, 26, 46, 0.25); --cosmic-card: #16213e;
+            --cosmic-purple: #7c3aed; --cosmic-teal: #14b8a6; --cosmic-text: #e2e8f0; --cosmic-muted: #94a3b8;
+            --cosmic-border: rgba(124, 58, 237, 0.2); --cosmic-success: #22c55e; --cosmic-error: #ef4444; --cosmic-gold: #f59e0b;
+        }
+        [data-theme="light"] {
+            --cosmic-bg: #87CEEB; --cosmic-surface: rgba(255, 255, 255, 0.5); --cosmic-card: #ffffff;
+            --cosmic-purple: #8b5cf6; --cosmic-teal: #0d9488; --cosmic-text: #1e293b; --cosmic-muted: #64748b;
+            --cosmic-border: rgba(139, 92, 246, 0.2);
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--cosmic-bg); 
+            color: var(--cosmic-text); 
+            transition: background-color 0.8s ease, color 0.3s ease; 
+            overflow-x: hidden; 
+        }
+        
+        /* --- DUAL THEME BACKGROUND STYLES --- */
+        #background-container > div { position: fixed; transition: opacity 0.8s ease-in-out; pointer-events: none; z-index: -2; }
+        .starfield, .moon, .shooting-stars { opacity: 1; }
+        .starfield { top: 0; left: 0; width: 100%; height: 200%; animation: slide-stars 200s linear infinite; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 3s infinite; }
+        .moon {
+            top: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%;
+            background-color: #E0E0E0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(0,0,0,0.25) 0%, transparent 25%),
+                radial-gradient(circle at 65% 70%, rgba(0,0,0,0.2) 0%, transparent 20%),
+                radial-gradient(circle at 45% 55%, rgba(255,255,255,0.1) 0%, transparent 15%);
+            box-shadow: 0 0 15px #ffffff, 0 0 30px rgba(255,255,255,0.7);
+            animation: float-celestial 60s ease-in-out infinite alternate;
+        }
+        .shooting-stars { top:0; left:0; width: 100%; height: 100%; }
+        .shooting-star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #fff; animation: shoot linear infinite; }
+        .shooting-star::before { content: ''; position: absolute; width: 200px; height: 1px; background: linear-gradient(90deg, #fff, transparent); transform: translateX(-100%) translateY(-50%); }
+        @keyframes slide-stars { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes float-celestial { from { transform: translate(-20px, 10px); } to { transform: translate(20px, -10px); } }
+        @keyframes shoot { from { transform: translate(var(--start-x), var(--start-y)) scale(0); } to { transform: translate(var(--end-x), var(--end-y)) scale(1); opacity: 0; } }
+        .sun-sky, .clouds { opacity: 0; }
+        .sun-sky {
+            top: 2rem; right: 2rem; width: 60px; height: 60px; background: #FFD700; border-radius: 50%;
+            box-shadow: 0 0 25px #FFD700, 0 0 50px #FFD700;
+            animation: pulse-sun 5s ease-in-out infinite;
+        }
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50%; width: 150px; height: 50px; animation: drift 60s linear infinite; }
+        .cloud:before, .cloud:after { content: ''; position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50%; }
+        .cloud:before { width: 80px; height: 80px; top: -40px; left: 20px; }
+        .cloud:after { width: 100px; height: 60px; top: -30px; right: 20px; }
+        #cloud1 { top: 20%; animation-duration: 70s; } #cloud2 { top: 50%; animation-duration: 90s; animation-delay: -20s; } #cloud3 { top: 70%; animation-duration: 60s; animation-delay: -40s; }
+        @keyframes pulse-sun { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(100vw); } }
+        [data-theme="light"] .starfield, [data-theme="light"] .moon, [data-theme="light"] .shooting-stars { opacity: 0; }
+        [data-theme="light"] .sun-sky, [data-theme="light"] .clouds { opacity: 1; }
+        
+        /* Other Styles */
+        .orbitron { font-family: 'Orbitron', monospace; }
+        .card { background-color: var(--cosmic-surface); border: 1px solid var(--cosmic-border); border-radius: 20px; padding: 1.5rem; backdrop-filter: blur(20px); position: relative; overflow: hidden; color: var(--cosmic-text); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--cosmic-purple), var(--cosmic-teal), transparent); }
+        .btn-primary { background: linear-gradient(135deg, var(--cosmic-purple), var(--cosmic-teal)); color: white; border: none; border-radius: 12px; font-weight: 600; padding: 0.75rem 1.5rem; transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4); }
+        .btn-claim { background: linear-gradient(135deg, var(--cosmic-gold), #b45309); color: white; border-radius: 999px; font-weight: 600; padding: 0.5rem 1rem; transition: all 0.3s ease; font-size: 0.875rem; white-space: nowrap; }
+        .btn-claim:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4); }
+        .btn-claim:disabled { background: var(--cosmic-muted); color: var(--cosmic-text); cursor: not-allowed; opacity: 0.5; }
+        .balance-card { background: linear-gradient(135deg, var(--cosmic-gold), #d97706); border-radius: 20px; padding: 2rem; color: white; box-shadow: 0 20px 40px rgba(217, 119, 6, 0.3); animation: subtle-float 6s ease-in-out infinite; }
+        @keyframes subtle-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        .nav-container { background: var(--cosmic-surface); backdrop-filter: blur(20px); border-bottom: 1px solid var(--cosmic-border); }
+        .nav-item { color: var(--cosmic-muted); transition: all 0.3s ease; border-radius: 12px; }
+        .nav-item:hover { color: var(--cosmic-text); background: rgba(124, 58, 237, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, var(--cosmic-purple), var(--cosmic-teal)); color: white; }
+        .theme-toggle { width: 50px; height: 26px; background: var(--cosmic-card); border: 1px solid var(--cosmic-border); border-radius: 13px; position: relative; cursor: pointer; }
+        .theme-toggle::before { content: '🌙'; position: absolute; top: 2px; left: 3px; width: 20px; height: 20px; background: var(--cosmic-purple); border-radius: 50%; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        [data-theme="light"] .theme-toggle::before { content: '☀️'; transform: translateX(23px); }
+        .message-box { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 12px; color: white; z-index: 1000; transition: top 0.5s ease; backdrop-filter: blur(10px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .message-box.show { top: 2rem; }
+        .message-box.success { background: linear-gradient(135deg, var(--cosmic-success), #16a34a); }
+        .message-box.error { background: linear-gradient(135deg, var(--cosmic-error), #b91c1c); }
+        .scratch-card-wrapper { background: linear-gradient(145deg, #fef08a, #b45309); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 2px 2px rgba(255,255,255,0.4); }
+        .scratch-card-container { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; margin-bottom: 0.75rem; border: 2px solid rgba(255, 255, 255, 0.3); background: linear-gradient(145deg, #fef08a, #d97706); }
+        .scratch-card-prize { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: var(--cosmic-bg); text-align: center; }
+        .scratch-card-prize h4 { font-size: 1.25rem; font-weight: 700; color: var(--cosmic-success); padding: 0.5rem; }
+        .scratch-card-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s ease; }
+        .scratch-card-canvas.unlocked { cursor: crosshair; }
+        .scratch-card-canvas.cleared { opacity: 0; pointer-events: none; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fade-in 0.5s ease forwards; }
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; top: 0; left: 0; opacity: 0; animation: confetti-fall 3s ease-out forwards; pointer-events: none; z-index: 1001; border-radius: 50%; }
+        @keyframes confetti-fall { 0% { transform: translate(var(--x), var(--y)) rotateZ(0deg) scale(1); opacity: 1; } 100% { transform: translate(var(--x-end), var(--y-end)) rotateZ(720deg) scale(0); opacity: 0; } }
+    </style>
+</head>
+<body class="pt-16">
+    <div id="background-container">
+        <div class="starfield" id="starfield1"></div>
+        <div class="moon"></div>
+        <div class="shooting-stars" id="shooting-stars"></div>
+        <div class="sun-sky"></div>
+        <div class="clouds">
+            <div id="cloud1" class="cloud"></div><div id="cloud2" class="cloud"></div><div id="cloud3" class="cloud"></div>
+        </div>
+    </div>
+    <div id="messageBox" class="message-box"></div>
+
+    <header class="nav-container fixed w-full top-0 z-50">
+       <nav class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <a href="DashBoard.html" class="text-xl font-bold orbitron bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent">SPENDY</a>
+                <div class="desktop-nav flex items-center space-x-2 ml-12">
+                    <a href="DashBoard.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="text-sm font-medium">Home</span></div></a>
+                    <a href="Investments.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="text-sm font-medium">Investments</span></div></a>
+                    <a href="Transactions.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="text-sm font-medium">Transactions</span></div></a>
+                    <a href="PayBills.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg><span class="text-sm font-medium">Pay Bills</span></div></a>
+                    <a href="safe.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><span class="text-sm font-medium">Goals</span></div></a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="theme-toggle" id="themeToggle"></div>
+                    <a href="Profile.html" class="flex items-center space-x-2"><div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center"><span class="text-white text-sm font-bold orbitron">CS</span></div></a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <section class="balance-card mb-8 fade-in">
+            <div class="text-center">
+                <h2 class="text-lg font-medium opacity-90">Your Points Balance</h2>
+                <p class="text-4xl font-bold orbitron mt-1" id="pointsBalance">0</p>
+            </div>
+        </section>
+
+        <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <section class="card fade-in" style="animation-delay: 0.1s;">
+                <h3 class="text-xl font-semibold mb-6">Available Offers</h3>
+                <div class="space-y-4" id="offersList"></div>
+            </section>
+            <section class="card fade-in" style="animation-delay: 0.2s;">
+               <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold">Redeem Rewards</h3>
+                    <button id="resetDataBtn" class="text-sm font-medium transition-colors hover:text-red-400" style="color: var(--cosmic-muted);">Reset Data</button>
+                </div>
+                <div class="space-y-4" id="rewardsList"></div>
+            </section>
+        </div>
+
+        <section class="card fade-in" style="animation-delay: 0.3s;">
+            <h3 class="text-xl font-semibold mb-6">Scratch & Win</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="scratchCardsGrid"></div>
+        </section>
+    </main>
+
+    <script>
+        if (localStorage.getItem('spendyLoggedIn') !== 'true') {
+            window.location.href = 'Login.html';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DATA SETUP ---
+            // MODIFIED: Converted prize values to INR
+            const scratchCardTiers = {
+                bronze: { title: 'Bronze Card', cost: 50, prizes: [ { text: '5 Points Back!', value: 5, type: 'points' }, { text: 'Try Again!', value: 0, type: 'cashback' }, { text: '₹100 Bonus!', value: 100, type: 'cashback' } ] },
+                silver: { title: 'Silver Card', cost: 150, prizes: [ { text: '₹200 Cashback', value: 200, type: 'cashback' }, { text: '50 Points!', value: 50, type: 'points' }, { text: '₹500 Cashback', value: 500, type: 'cashback' } ] },
+                gold: { title: 'Gold Card', cost: 300, prizes: [ { text: '₹750 Voucher', value: 750, type: 'cashback' }, { text: '150 Points!', value: 150, type: 'points' }, { text: '₹1000 Voucher', value: 1000, type: 'cashback' } ] }
+            };
+            const defaultOffers = [{ id: 1, provider: 'Amazon', title: '10% Cashback', description: 'Activate for your next purchase.', logo: 'https://logo.clearbit.com/amazon.in', expiryDate: '2025-09-20T23:59:59' }];
+            const defaultRewards = [{ id: 1, title: '₹500 Cashback', value: 500, cost: 5000, status: 'available' }];
+            const defaultScratchCards = [
+                { id: 101, tier: 'bronze', status: 'available', currentPrize: null }, { id: 102, tier: 'silver', status: 'available', currentPrize: null },
+                { id: 103, tier: 'gold', status: 'available', currentPrize: null }, { id: 104, tier: 'gold', status: 'available', currentPrize: null },
+            ];
+            const defaultPoints = 1275;
+            
+            // --- STATE MANAGEMENT ---
+            let offers = JSON.parse(localStorage.getItem('offers')) || defaultOffers;
+            let rewards = JSON.parse(localStorage.getItem('rewards')) || defaultRewards;
+            let scratchCards = JSON.parse(localStorage.getItem('scratchCards')) || defaultScratchCards;
+            let userPoints = JSON.parse(localStorage.getItem('userPoints')) || defaultPoints;
+            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            
+            const randomizePrize = (card) => { const tier = scratchCardTiers[card.tier]; card.currentPrize = tier.prizes[Math.floor(Math.random() * tier.prizes.length)]; };
+            scratchCards.forEach(card => { if(!card.currentPrize) randomizePrize(card); });
+
+            // --- RENDER FUNCTIONS ---
+            function renderOffers() {
+                const container = document.getElementById('offersList');
+                if (!container) return;
+                container.innerHTML = offers.map(offer => {
+                    const expiry = new Date(offer.expiryDate); const diffDays = Math.ceil((expiry - new Date()) / 864e5);
+                    let expiryText = `Expires in ${diffDays} days`; if (diffDays < 0) expiryText = 'Expired'; else if (diffDays <= 1) expiryText = 'Expires today';
+                    return `<article class="flex items-center space-x-4 p-3 rounded-lg" style="background: var(--cosmic-card);"><img src="${offer.logo}" alt="${offer.provider}" class="w-10 h-10 rounded-full object-contain bg-white" onerror="this.src='https://via.placeholder.com/40';"><div class="flex-1"><h4 class="font-semibold">${offer.title}</h4><p class="text-sm" style="color: var(--cosmic-muted);">${offer.description} <span class="font-semibold" style="color: var(--cosmic-gold);">${expiryText}</span></p></div><button class="btn-primary text-sm" onclick="showMessage('Offer activated!', 'success')">Activate</button></article>`;
+                }).join('');
+            }
+            
+            function renderRewards() {
+                const container = document.getElementById('rewardsList');
+                if (!container) return;
+                if (rewards.length === 0) { container.innerHTML = `<p class="text-center text-sm" style="color: var(--cosmic-muted);">No rewards available.</p>`; return; }
+                container.innerHTML = rewards.map(reward => {
+                    const isClaimed = reward.status === 'claimed'; const canAfford = userPoints >= reward.cost;
+                    return `<article class="flex items-center justify-between p-3 rounded-lg" style="background: var(--cosmic-card);"><div class="flex items-center space-x-4"><div class="w-10 h-10 rounded-full flex items-center justify-center bg-yellow-500/20"><svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1.5M12 6h.01M12 6H9.5M12 6h2.5M12 6V3m0 3v.01M12 6h.01M12 18v-2m0-2v-2m0 2v2m0 2v2M12 18h.01M12 18h-2.5m2.5 0h2.5M12 18v2.5M12 18v-2.5m0 0h.01"></path></svg></div><div><h4 class="font-semibold">${reward.title}</h4><p class="text-sm font-medium" style="color: ${!isClaimed && canAfford ? 'var(--cosmic-gold)' : 'var(--cosmic-muted)'};">${reward.cost.toLocaleString('en-IN')} Points</p></div></div><button class="btn-claim claim-reward-btn" data-id="${reward.id}" ${isClaimed || !canAfford ? 'disabled' : ''}>${isClaimed ? 'Claimed' : 'Redeem'}</button></article>`;
+                }).join('');
+            }
+            
+            function renderScratchCards() {
+                const container = document.getElementById('scratchCardsGrid');
+                if (!container) return;
+                container.innerHTML = scratchCards.map(card => {
+                    const tierInfo = scratchCardTiers[card.tier];
+                    const isUnlocked = card.status === 'unlocked';
+                    const canAfford = userPoints >= tierInfo.cost;
+                    return `
+                    <div class="scratch-card-wrapper">
+                        <div class="scratch-card-container" id="scratch-card-${card.id}">
+                            <div class="scratch-card-prize"><h4>${card.currentPrize.text}</h4></div>
+                            <canvas class="scratch-card-canvas" id="canvas-${card.id}"></canvas>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="font-semibold text-white">${tierInfo.title}</h4>
+                            ${isUnlocked ? `<p class="text-sm font-medium text-green-300">Scratch to win!</p>` : `<button class="btn-claim claim-scratch-btn mt-2 w-full" data-id="${card.id}" ${!canAfford ? 'disabled' : ''}>${tierInfo.cost.toLocaleString('en-IN')} Points</button>`}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // --- INTERACTIVITY LOGIC ---
+            function drawScratchOverlay(canvas) {
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, '#d1d5db'); gradient.addColorStop(0.5, '#9ca3af'); gradient.addColorStop(1, '#d1d5db');
+                ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function addScratchingListeners(canvas, card) {
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                canvas.classList.add('unlocked'); let isDrawing = false;
+                const scratch = (e) => {
+                    if (!isDrawing) return; e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left; const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath(); ctx.arc(x, y, canvas.width / 8, 0, 2 * Math.PI); ctx.fill();
+                };
+                const checkCompletion = () => {
+                    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data; let transparent = 0;
+                    for (let i = 3; i < pixels.length; i += 4) if (pixels[i] === 0) transparent++;
+                    if ((transparent / (canvas.width * canvas.height)) > 0.6) {
+                        canvas.classList.add('cleared');
+                        showMessage(`You won: ${card.currentPrize.text}!`, 'success');
+                        if (card.currentPrize.type === 'cashback' && card.currentPrize.value > 0) {
+                            transactions.unshift({ id: Date.now(), desc: `Scratched & Won: ${card.currentPrize.text}`, amount: card.currentPrize.value, type: 'income', tag: 'Rewards', date: new Date().toISOString() });
+                        } else if (card.currentPrize.type === 'points') { userPoints += card.currentPrize.value; }
+                        card.status = 'available'; randomizePrize(card);
+                        triggerConfetti(); setTimeout(updateRewardsPage, 500);
+                    }
+                };
+                const start = (e) => { e.preventDefault(); isDrawing = true; scratch(e); }; const end = () => { if(isDrawing) { isDrawing = false; checkCompletion(); }};
+                canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', scratch);
+                canvas.addEventListener('mouseup', end); canvas.addEventListener('mouseleave', end);
+                canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', scratch);
+                canvas.addEventListener('touchend', end);
+            }
+
+            function triggerConfetti() {
+                const colors = ['#fde047', '#f97316', '#7c3aed', '#14b8a6', '#e2e8f0'];
+                for (let i = 0; i < 80; i++) {
+                    const c = document.createElement('div'); c.classList.add('confetti'); c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    const sx = Math.random() * window.innerWidth;
+                    c.style.setProperty('--x', `${sx}px`); c.style.setProperty('--y', `-20px`);
+                    c.style.setProperty('--x-end', `${sx + (Math.random() - 0.5) * 400}px`); c.style.setProperty('--y-end', `${window.innerHeight + 20}px`);
+                    c.style.animationDelay = `${Math.random() * 0.5}s`;
+                    document.body.appendChild(c); c.addEventListener('animationend', () => c.remove());
+                }
+            }
+
+            // --- MAIN UPDATE FUNCTION ---
+            function updateRewardsPage() {
+                document.getElementById('pointsBalance').textContent = userPoints.toLocaleString('en-IN');
+                renderOffers(); renderRewards(); renderScratchCards();
+                localStorage.setItem('offers', JSON.stringify(offers));
+                localStorage.setItem('rewards', JSON.stringify(rewards));
+                localStorage.setItem('scratchCards', JSON.stringify(scratchCards));
+                localStorage.setItem('userPoints', JSON.stringify(userPoints));
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+
+                scratchCards.forEach(card => {
+                    const canvas = document.getElementById(`canvas-${card.id}`);
+                    if(canvas) {
+                        drawScratchOverlay(canvas);
+                        if (card.status === 'unlocked') { addScratchingListeners(canvas, card); }
+                    }
+                });
+            }
+            
+            // --- EVENT LISTENERS ---
+            document.getElementById('rewardsList').addEventListener('click', e => {
+                if (e.target.classList.contains('claim-reward-btn')) {
+                    const rewardId = parseInt(e.target.dataset.id, 10);
+                    const reward = rewards.find(r => r.id === rewardId);
+                    if (reward && reward.status === 'available' && userPoints >= reward.cost) {
+                        userPoints -= reward.cost; reward.status = 'claimed';
+                        transactions.unshift({ id: Date.now(), desc: `Claimed Reward: ${reward.title}`, amount: reward.value, type: 'income', tag: 'Rewards', date: new Date().toISOString() });
+                        showMessage(`Reward claimed for ${reward.cost.toLocaleString('en-IN')} points!`, 'success');
+                        updateRewardsPage();
+                    } else if (reward && userPoints < reward.cost) { showMessage('Not enough points.', 'error'); }
+                }
+            });
+            
+            document.getElementById('scratchCardsGrid').addEventListener('click', e => {
+                if (e.target.classList.contains('claim-scratch-btn')) {
+                    const cardId = parseInt(e.target.dataset.id, 10);
+                    const card = scratchCards.find(c => c.id === cardId);
+                    const tierInfo = scratchCardTiers[card.tier];
+                    if (card && card.status === 'available' && userPoints >= tierInfo.cost) {
+                        userPoints -= tierInfo.cost; card.status = 'unlocked';
+                        showMessage(`Card unlocked for ${tierInfo.cost.toLocaleString('en-IN')} points!`, 'success');
+                        updateRewardsPage();
+                    } else if (card && userPoints < tierInfo.cost) { showMessage('Not enough points.', 'error'); }
+                }
+            });
+
+            document.getElementById('resetDataBtn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset all rewards data? This cannot be undone.')) {
+                    localStorage.removeItem('rewards'); localStorage.removeItem('scratchCards');
+                    localStorage.removeItem('userPoints'); localStorage.removeItem('offers');
+                    location.reload();
+                }
+            });
+            
+            // --- UTILITIES & THEME ---
+            const themeToggle = document.getElementById('themeToggle');
+            if (localStorage.getItem('theme') === 'light') document.body.setAttribute('data-theme', 'light');
+            themeToggle.addEventListener('click', () => { if (document.body.hasAttribute('data-theme')) { document.body.removeAttribute('data-theme'); localStorage.removeItem('theme'); } else { document.body.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); } });
+            function showMessage(message, type = 'success') { const box = document.getElementById('messageBox'); box.textContent = message; box.className = `message-box ${type} show`; setTimeout(() => box.classList.remove('show'), 3000); }
+            
+            function createStarfield() {
+                const container = document.getElementById('starfield1'); 
+                if (container && container.children.length > 0) return; 
+                for (let i = 0; i < 150; i++) { 
+                    const star = document.createElement('div'); 
+                    star.className = 'star'; 
+                    star.style.left = `${Math.random() * 100}%`; 
+                    star.style.top = `${Math.random() * 100}%`; 
+                    const size = Math.random() * 1.5 + 1; 
+                    star.style.width = `${size}px`; 
+                    star.style.height = star.style.width; 
+                    star.style.animationDelay = `${Math.random() * 3}s`; 
+                    if(container) container.appendChild(star); 
+                } 
+            }
+            function createShootingStars() { 
+                const container = document.getElementById('shooting-stars'); 
+                if (!container) return; 
+                setInterval(() => { 
+                    if (document.body.getAttribute('data-theme') === 'light') return; 
+                    const star = document.createElement('div'); 
+                    star.className = 'shooting-star'; 
+                    const startX = window.innerWidth * Math.random(); 
+                    const startY = window.innerHeight * Math.random() * 0.5; 
+                    const duration = Math.random() * 2 + 1; 
+                    star.style.setProperty('--start-x', `${startX}px`); 
+                    star.style.setProperty('--start-y', `${startY}px`); 
+                    star.style.setProperty('--end-x', `${startX - 300}px`); 
+                    star.style.setProperty('--end-y', `${startY + 300}px`); 
+                    star.style.animationDuration = `${duration}s`; 
+                    container.appendChild(star); 
+                    setTimeout(() => star.remove(), duration * 1000); 
+                }, 4000); 
+            }
+            
+            createStarfield();
+            createShootingStars();
+            updateRewardsPage();
+        });
+    </script>
+</body>
+</html>

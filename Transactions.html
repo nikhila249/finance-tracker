@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spendy | Transactions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --cosmic-bg: #0a0a0f; --cosmic-surface: rgba(26, 26, 46, 0.25); --cosmic-card: #16213e;
+            --cosmic-purple: #7c3aed; --cosmic-teal: #14b8a6; --cosmic-text: #e2e8f0; --cosmic-muted: #94a3b8;
+            --cosmic-border: rgba(124, 58, 237, 0.2); --cosmic-success: #22c55e; --cosmic-error: #ef4444;
+        }
+        [data-theme="light"] {
+            --cosmic-bg: #87CEEB; --cosmic-surface: rgba(255, 255, 255, 0.5); --cosmic-card: #ffffff;
+            --cosmic-purple: #8b5cf6; --cosmic-teal: #0d9488; --cosmic-text: #1e293b; --cosmic-muted: #64748b;
+            --cosmic-border: rgba(139, 92, 246, 0.2);
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--cosmic-bg); 
+            color: var(--cosmic-text); 
+            transition: background-color 0.8s ease, color 0.3s ease; 
+            overflow-x: hidden; 
+        }
+        
+        /* --- DUAL THEME BACKGROUND STYLES --- */
+        #background-container > div { position: fixed; transition: opacity 0.8s ease-in-out; pointer-events: none; z-index: -2; }
+        .starfield, .moon, .shooting-stars { opacity: 1; }
+        .starfield { top: 0; left: 0; width: 100%; height: 200%; animation: slide-stars 200s linear infinite; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 3s infinite; }
+        .moon {
+            top: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background-color: #E0E0E0;
+            background-image: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.25) 0%, transparent 25%),
+                              radial-gradient(circle at 65% 70%, rgba(0,0,0,0.2) 0%, transparent 20%),
+                              radial-gradient(circle at 45% 55%, rgba(255,255,255,0.1) 0%, transparent 15%);
+            box-shadow: 0 0 15px #ffffff, 0 0 30px rgba(255,255,255,0.7);
+            animation: float-celestial 60s ease-in-out infinite alternate;
+        }
+        .shooting-stars { top:0; left:0; width: 100%; height: 100%; }
+        .shooting-star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #fff; animation: shoot linear infinite; }
+        .shooting-star::before { content: ''; position: absolute; width: 200px; height: 1px; background: linear-gradient(90deg, #fff, transparent); transform: translateX(-100%) translateY(-50%); }
+        @keyframes slide-stars { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes float-celestial { from { transform: translate(-20px, 10px); } to { transform: translate(20px, -10px); } }
+        @keyframes shoot { from { transform: translate(var(--start-x), var(--start-y)) scale(0); } to { transform: translate(var(--end-x), var(--end-y)) scale(1); opacity: 0; } }
+        .sun-sky, .clouds { opacity: 0; }
+        .sun-sky {
+            top: 2rem; right: 2rem; width: 60px; height: 60px; background: #FFD700; border-radius: 50%;
+            box-shadow: 0 0 25px #FFD700, 0 0 50px #FFD700;
+            animation: pulse-sun 5s ease-in-out infinite;
+        }
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50%; width: 150px; height: 50px; animation: drift 60s linear infinite; }
+        .cloud:before, .cloud:after { content: ''; position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50%; }
+        .cloud:before { width: 80px; height: 80px; top: -40px; left: 20px; }
+        .cloud:after { width: 100px; height: 60px; top: -30px; right: 20px; }
+        #cloud1 { top: 20%; animation-duration: 70s; } #cloud2 { top: 50%; animation-duration: 90s; animation-delay: -20s; } #cloud3 { top: 70%; animation-duration: 60s; animation-delay: -40s; }
+        @keyframes pulse-sun { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(100vw); } }
+        [data-theme="light"] .starfield, [data-theme="light"] .moon, [data-theme="light"] .shooting-stars { opacity: 0; }
+        [data-theme="light"] .sun-sky, [data-theme="light"] .clouds { opacity: 1; }
+        
+        /* Other Styles */
+        .orbitron { font-family: 'Orbitron', monospace; }
+        .card { background-color: var(--cosmic-surface); border: 1px solid var(--cosmic-border); border-radius: 20px; padding: 1.5rem; backdrop-filter: blur(20px); position: relative; overflow: hidden; color: var(--cosmic-text); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--cosmic-purple), var(--cosmic-teal), transparent); }
+        .btn-primary { background: linear-gradient(135deg, var(--cosmic-purple), var(--cosmic-teal)); color: white; border: none; border-radius: 12px; font-weight: 600; padding: 0.75rem 1.5rem; transition: all 0.3s ease; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-filter { background: var(--cosmic-card); color: var(--cosmic-muted); border: 1px solid var(--cosmic-border); border-radius: 12px; padding: 0.5rem 1rem; transition: all 0.3s ease; font-weight: 500; }
+        .btn-filter.active, .btn-filter:hover { background: linear-gradient(135deg, var(--cosmic-purple), var(--cosmic-teal)); color: white; border-color: transparent; }
+        .input-field { width: 100%; background-color: var(--cosmic-card); border: 1px solid var(--cosmic-border); color: var(--cosmic-text); border-radius: 12px; padding: 0.75rem 1rem; transition: all 0.3s ease; }
+        .input-field:focus { outline: none; border-color: var(--cosmic-purple); box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
+        .balance-card { padding: 2rem; color: var(--cosmic-text); }
+        .nav-container { background: var(--cosmic-surface); backdrop-filter: blur(20px); border-bottom: 1px solid var(--cosmic-border); }
+        .nav-item { color: var(--cosmic-muted); transition: all 0.3s ease; border-radius: 12px; }
+        .nav-item:hover { color: var(--cosmic-text); background: rgba(124, 58, 237, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, var(--cosmic-purple), var(--cosmic-teal)); color: white; }
+        .theme-toggle { width: 50px; height: 26px; background: var(--cosmic-card); border: 1px solid var(--cosmic-border); border-radius: 13px; position: relative; cursor: pointer; }
+        .theme-toggle::before { content: '🌙'; position: absolute; top: 2px; left: 3px; width: 20px; height: 20px; background: var(--cosmic-purple); border-radius: 50%; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        [data-theme="light"] .theme-toggle::before { content: '☀️'; transform: translateX(23px); }
+        .progress-container { background: rgba(30, 41, 59, 0.5); border-radius: 12px; overflow: hidden; height: 0.75rem; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--cosmic-purple), var(--cosmic-teal)); transition: width 0.8s ease; }
+        .message-box { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 12px; color: white; z-index: 1000; transition: top 0.5s ease; backdrop-filter: blur(10px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .message-box.show { top: 2rem; }
+        .message-box.success { background: linear-gradient(135deg, var(--cosmic-success), #16a34a); }
+        .message-box.error { background: linear-gradient(135deg, var(--cosmic-error), #b91c1c); }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fade-in 0.5s ease forwards; }
+        .tag { background-color: rgba(124, 58, 237, 0.1); color: var(--cosmic-purple); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; }
+        dialog::backdrop { background-color: rgba(10, 10, 15, 0.5); backdrop-filter: blur(8px); }
+        dialog { max-width: 500px; width: 100%; margin: auto; padding: 0; border: none; background: none; }
+        .friend-avatar { width: 24px; height: 24px; border-radius: 50%; background-color: var(--cosmic-teal); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; border: 2px solid var(--cosmic-bg); }
+        .btn-split { background-color: transparent; border: 1px solid var(--cosmic-teal); color: var(--cosmic-teal); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; transition: all 0.2s ease; margin-top: 4px; }
+        .btn-split:hover { background-color: var(--cosmic-teal); color: white; box-shadow: 0 0 10px var(--cosmic-teal); }
+    </style>
+</head>
+<body class="pt-16">
+    <div id="background-container">
+        <div class="starfield" id="starfield1"></div>
+        <div class="moon"></div>
+        <div class="shooting-stars" id="shooting-stars"></div>
+        <div class="sun-sky"></div>
+        <div class="clouds">
+            <div id="cloud1" class="cloud"></div><div id="cloud2" class="cloud"></div><div id="cloud3" class="cloud"></div>
+        </div>
+    </div>
+    <div id="messageBox" class="message-box"></div>
+
+    <header class="nav-container fixed w-full top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <a href="DashBoard.html" class="text-xl font-bold orbitron bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent">SPENDY</a>
+                <div class="desktop-nav flex items-center space-x-2 ml-12">
+                    <a href="DashBoard.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="text-sm font-medium">Home</span></div></a>
+                    <a href="Investments.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="text-sm font-medium">Investments</span></div></a>
+                    <a href="Transactions.html"><div class="nav-item active flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><span class="text-sm font-medium">Transactions</span></div></a>
+                    <a href="PayBills.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg><span class="text-sm font-medium">Pay Bills</span></div></a>
+                    <a href="safe.html"><div class="nav-item flex items-center space-x-2 px-4 py-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><span class="text-sm font-medium">Goals</span></div></a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="theme-toggle" id="themeToggle"></div>
+                    <a href="Profile.html" class="flex items-center space-x-2"><div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center"><span class="text-white text-sm font-bold orbitron">CS</span></div></a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <section class="card balance-card mb-8 fade-in">
+            <h2 class="text-lg font-medium opacity-90 text-center mb-4">This Month's Flow</h2>
+            <div class="flex items-center justify-around">
+                <div class="text-center">
+                    <p class="text-sm opacity-90">Income</p>
+                    <p class="text-3xl font-bold orbitron mt-1 text-green-300" id="monthlyIncome">₹0.00</p>
+                </div>
+                <div class="h-16 w-px bg-white/20"></div>
+                <div class="text-center">
+                    <p class="text-sm opacity-90">Expenses</p>
+                    <p class="text-3xl font-bold orbitron mt-1 text-red-300" id="monthlyExpenses">₹0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card fade-in" style="animation-delay: 0.1s;">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                <h3 class="text-xl font-semibold">Transaction History</h3>
+                <div class="flex items-center space-x-2" id="filterContainer">
+                    <button class="btn-filter active" data-filter="all">All</button>
+                    <button class="btn-filter" data-filter="income">Income</button>
+                    <button class="btn-filter" data-filter="expense">Expenses</button>
+                </div>
+                <button class="btn-primary w-full sm:w-auto" onclick="transactionModal.showModal()">Add Transaction</button>
+            </div>
+            <div class="space-y-3" id="fullTransactionsList"></div>
+        </section>
+    </main>
+
+    <dialog id="transactionModal">
+        <div class="card p-6 rounded-2xl w-full max-w-sm">
+            <h3 class="text-xl font-semibold mb-6">Add New Transaction</h3>
+            <form id="transactionForm" class="space-y-4">
+                <input type="text" placeholder="Description (e.g., Grocery Shopping)" class="input-field" id="transactionDesc" required>
+                <input type="number" placeholder="Amount (₹)" class="input-field" id="transactionAmount" required min="0" step="0.01">
+                <select class="input-field" id="transactionType" required><option value="" disabled selected>Select Type</option><option value="income">Income</option><option value="expense">Expense</option></select>
+                <input type="text" placeholder="Category (e.g., Food, Salary)" class="input-field" id="transactionTag" required>
+                <div class="flex space-x-3 pt-4"><button type="submit" class="btn-primary flex-1">Add Transaction</button><button type="button" class="px-4 py-2 rounded-lg border" style="border-color: var(--cosmic-border); color: var(--cosmic-muted);" onclick="transactionModal.close()">Cancel</button></div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="splitModal">
+        <div class="card p-6 rounded-2xl w-full max-w-sm">
+            <h3 class="text-xl font-semibold mb-2">Split Expense</h3>
+            <p id="split-desc" class="mb-1 text-sm" style="color: var(--cosmic-muted);"></p>
+            <p class="text-2xl font-bold orbitron mb-4" id="split-total-amount">₹0.00</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium block mb-2">Split with friends:</label>
+                    <div id="friends-checklist" class="space-y-2 max-h-40 overflow-y-auto p-2 rounded-lg" style="background: var(--cosmic-card);"></div>
+                </div>
+                <form id="add-friend-form" class="flex gap-2">
+                    <input type="text" id="new-friend-name" class="input-field" placeholder="Add friend's name">
+                    <button type="submit" class="btn-primary !p-2.5"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                </form>
+                <div class="text-center p-4 rounded-lg" style="background-color: var(--cosmic-card);">
+                    <p class="text-sm" style="color: var(--cosmic-muted);">Your Share</p>
+                    <p class="text-2xl font-semibold" id="split-per-person">₹0.00</p>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-6">
+                <button type="button" id="confirmSplitBtn" class="btn-primary flex-1">Confirm Split</button>
+                <button type="button" class="px-4 py-2 rounded-lg border" style="border-color: var(--cosmic-border); color: var(--cosmic-muted);" onclick="splitModal.close()">Cancel</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        if (localStorage.getItem('spendyLoggedIn') !== 'true') { window.location.href = 'Login.html'; }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- STATE MANAGEMENT ---
+            const defaultFriends = ['Alex', 'Maya', 'Sam'];
+            const defaultTransactions = [
+                { id: 1, desc: 'Salary Deposit', amount: 55000, type: 'income', tag: 'Salary', date: '2025-09-01' },
+                { id: 2, desc: 'Dinner with Friends', amount: -1200, type: 'expense', tag: 'Food', date: '2025-09-04' },
+                { id: 3, desc: 'Rent Payment', amount: -15000, type: 'expense', tag: 'Housing', date: '2025-09-01' },
+                { id: 4, desc: 'Internet Bill', amount: -850, type: 'expense', tag: 'Utilities', date: '2025-09-02' },
+                { id: 5, desc: 'Investment Returns', amount: 3500, type: 'income', tag: 'Investment', date: '2025-09-03' }
+            ];
+            let friendsList = JSON.parse(localStorage.getItem('friendsList')) || defaultFriends;
+            let transactions = JSON.parse(localStorage.getItem('transactions')) || defaultTransactions;
+            let currentFilter = 'all';
+            let transactionToSplitId = null;
+            
+            const transactionModal = document.getElementById('transactionModal');
+            const splitModal = document.getElementById('splitModal');
+            const filterContainer = document.getElementById('filterContainer');
+
+            // --- RENDER FUNCTIONS ---
+            function renderAllTransactions() {
+                const container = document.getElementById('fullTransactionsList');
+                const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const filteredTransactions = sortedTransactions.filter(t => currentFilter === 'all' || t.type === currentFilter);
+                if (filteredTransactions.length === 0) {
+                    container.innerHTML = `<p class="text-center py-8" style="color: var(--cosmic-muted);">No transactions found for this filter.</p>`;
+                    return;
+                }
+                
+                container.innerHTML = filteredTransactions.map(t => {
+                    const isIncome = t.type === 'income';
+                    const splitInfo = t.splitInfo;
+                    const icon = isIncome ? 'M12 6v6m0 0v6m0-6h6m-6 0H6' : 'M20 12H4';
+                    
+                    let splitDisplay = '';
+                    if (splitInfo && splitInfo.splitWith) {
+                        splitDisplay = `<div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs" style="color: var(--cosmic-muted);">Split with:</span>
+                            <div class="flex items-center -space-x-2">
+                                ${splitInfo.splitWith.map(name => `<div class="friend-avatar" title="${name}">${name.charAt(0)}</div>`).join('')}
+                            </div>
+                        </div>`;
+                    }
+
+                    const formattedAmount = Math.abs(t.amount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                    
+                    return `
+                        <article class="flex items-center justify-between p-3 rounded-lg hover:bg-white/5">
+                            <div class="flex-1 flex items-center space-x-4">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center ${isIncome ? 'bg-green-500' : 'bg-red-500'}">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${icon}"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium">${t.desc}</p>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="tag">${t.tag}</span>
+                                        <span class="text-xs" style="color: var(--cosmic-muted);">${new Date(t.date).toLocaleDateString()}</span>
+                                    </div>
+                                    ${splitDisplay}
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <span class="font-semibold text-lg ${isIncome ? 'text-green-400' : 'text-red-400'}">${isIncome ? '+' : ''}${formattedAmount}</span>
+                                ${!isIncome && !splitInfo ? `<button class="btn-split split-btn" data-id="${t.id}">Split</button>` : ''}
+                            </div>
+                        </article>`;
+                }).join('');
+            }
+            
+            function updateTransactionsPage() {
+                const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+                const monthlyTransactions = transactions.filter(t => new Date(t.date) >= startOfMonth);
+                const monthlyIncome = monthlyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+                const monthlyExpenses = monthlyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                document.getElementById('monthlyIncome').textContent = monthlyIncome.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                document.getElementById('monthlyExpenses').textContent = monthlyExpenses.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                renderAllTransactions();
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                localStorage.setItem('friendsList', JSON.stringify(friendsList));
+            }
+
+            // --- SPLIT LOGIC ---
+            function renderFriendsInModal() {
+                const container = document.getElementById('friends-checklist');
+                container.innerHTML = friendsList.map(friend => `
+                    <label class="flex items-center space-x-3 p-2 rounded-md hover:bg-white/5 cursor-pointer">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 rounded" style="background-color: var(--cosmic-card); border-color: var(--cosmic-border); color: var(--cosmic-purple);"/>
+                        <span>${friend}</span>
+                    </label>
+                `).join('');
+                container.addEventListener('change', calculateSplit);
+            }
+
+            function calculateSplit() {
+                const transaction = transactions.find(t => t.id === transactionToSplitId);
+                if (!transaction) return;
+                const checkedBoxes = document.querySelectorAll('#friends-checklist input:checked');
+                const peopleCount = 1 + checkedBoxes.length;
+                const perPerson = Math.abs(transaction.amount) / peopleCount;
+                document.getElementById('split-per-person').textContent = perPerson.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                document.getElementById('confirmSplitBtn').disabled = checkedBoxes.length === 0;
+            }
+
+            // --- EVENT LISTENERS ---
+            document.getElementById('fullTransactionsList').addEventListener('click', (e) => {
+                const splitBtn = e.target.closest('.split-btn');
+                if (splitBtn) {
+                    transactionToSplitId = parseInt(splitBtn.dataset.id, 10);
+                    const transaction = transactions.find(t => t.id === transactionToSplitId);
+                    if (transaction) {
+                        document.getElementById('split-desc').textContent = `Splitting "${transaction.desc}"`;
+                        document.getElementById('split-total-amount').textContent = Math.abs(transaction.amount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                        renderFriendsInModal();
+                        calculateSplit();
+                        splitModal.showModal();
+                    }
+                }
+            });
+            document.getElementById('add-friend-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newFriendInput = document.getElementById('new-friend-name');
+                const newName = newFriendInput.value.trim();
+                if (newName && !friendsList.includes(newName)) {
+                    friendsList.push(newName);
+                    renderFriendsInModal();
+                }
+                newFriendInput.value = '';
+            });
+            document.getElementById('confirmSplitBtn').addEventListener('click', () => {
+                const transactionIndex = transactions.findIndex(t => t.id === transactionToSplitId);
+                const checkedBoxes = document.querySelectorAll('#friends-checklist input:checked');
+                const peopleCount = 1 + checkedBoxes.length;
+                if (transactionIndex !== -1 && peopleCount >= 2) {
+                    const originalAmount = transactions[transactionIndex].amount;
+                    const newAmount = -(Math.abs(originalAmount) / peopleCount);
+                    const splitWith = Array.from(checkedBoxes).map(box => box.nextElementSibling.textContent);
+                    transactions[transactionIndex].amount = newAmount;
+                    transactions[transactionIndex].splitInfo = { originalAmount, people: peopleCount, splitWith };
+                    updateTransactionsPage();
+                    splitModal.close();
+                    showMessage('Expense split successfully!', 'success');
+                }
+            });
+            document.getElementById('transactionForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const type = document.getElementById('transactionType').value;
+                const amount = parseFloat(document.getElementById('transactionAmount').value);
+                transactions.unshift({
+                    id: Date.now(),
+                    desc: document.getElementById('transactionDesc').value,
+                    amount: type === 'expense' ? -amount : amount,
+                    type: type,
+                    tag: document.getElementById('transactionTag').value,
+                    date: new Date().toISOString()
+                });
+                updateTransactionsPage();
+                e.target.reset();
+                transactionModal.close();
+                showMessage('Transaction added!', 'success');
+            });
+            filterContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    currentFilter = e.target.dataset.filter;
+                    filterContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderAllTransactions();
+                }
+            });
+            
+            // --- THEME & UTILITIES ---
+            const themeToggle = document.getElementById('themeToggle');
+            if (localStorage.getItem('theme') === 'light') { document.body.setAttribute('data-theme', 'light'); }
+            themeToggle.addEventListener('click', () => {
+                if (document.body.hasAttribute('data-theme')) {
+                    document.body.removeAttribute('data-theme');
+                    localStorage.removeItem('theme');
+                } else {
+                    document.body.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            function showMessage(message, type = 'success') {
+                const box = document.getElementById('messageBox');
+                box.textContent = message;
+                box.className = `message-box ${type} show`;
+                setTimeout(() => box.classList.remove('show'), 3000);
+            }
+            function createStarfield() {
+                const container = document.getElementById('starfield1');
+                if (container && container.children.length > 0) return;
+                for (let i = 0; i < 150; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    const size = Math.random() * 1.5 + 1;
+                    star.style.width = `${size}px`;
+                    star.style.height = star.style.width;
+                    star.style.animationDelay = `${Math.random() * 3}s`;
+                    if(container) container.appendChild(star);
+                }
+            }
+            function createShootingStars() {
+                const container = document.getElementById('shooting-stars');
+                if (!container) return;
+                setInterval(() => {
+                    if (document.body.getAttribute('data-theme') === 'light') return;
+                    const star = document.createElement('div');
+                    star.className = 'shooting-star';
+                    const startX = window.innerWidth * Math.random();
+                    const startY = window.innerHeight * Math.random() * 0.5;
+                    const duration = Math.random() * 2 + 1;
+                    star.style.setProperty('--start-x', `${startX}px`);
+                    star.style.setProperty('--start-y', `${startY}px`);
+                    star.style.setProperty('--end-x', `${startX - 300}px`);
+                    star.style.setProperty('--end-y', `${startY + 300}px`);
+                    star.style.animationDuration = `${duration}s`;
+                    container.appendChild(star);
+                    setTimeout(() => star.remove(), duration * 1000);
+                }, 4000);
+            }
+            // --- INITIALIZATION ---
+            createStarfield();
+            createShootingStars();
+            updateTransactionsPage();
+        });
+    </script>
+</body>
+</html>
